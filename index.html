@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViagemPronta™ | Planejamento Inteligente</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons: FontAwesome (Usando Regular/Light para simular Heroicons Outline) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Libs: SortableJS & html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        page: '#F7F8FA',     // Ice White
+                        graphite: '#1B1D21', // Text Main
+                        petrol: '#003049',   // Primary / Brand
+                        royal: '#4A90E2',    // Accent / Action
+                        ivory: '#FCFCFA'     // Card Bg subtle
+                    },
+                    boxShadow: {
+                        'premium': '0 20px 40px -5px rgba(0, 48, 73, 0.06)',
+                        'float': '0 10px 30px -5px rgba(74, 144, 226, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #F7F8FA; color: #1B1D21; }
+        
+        /* Glassmorphism Card Premium */
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 48, 73, 0.08); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border-radius: 20px; 
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+        }
+
+        /* Drag & Drop Styles */
+        .drag-ghost { 
+            background-color: #f0f9ff; 
+            border: 1px dashed #4A90E2; 
+            opacity: 0.6; 
+            transform: scale(0.98);
+        }
+
+        /* Map Mock Style */
+        .map-mock { 
+            background-color: #f3f4f6;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px); 
+            background-size: 20px 20px; 
+        }
+
+        /* Typography spacing */
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        p, li, span { letter-spacing: 0.01em; }
+        
+        /* Smooth Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen selection:bg-royal selection:text-white">
+
+    <!-- Navbar Clean -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.reload()">
+                    <!-- Icon minimalista -->
+                    <div class="w-8 h-8 rounded-lg bg-petrol text-white flex items-center justify-center shadow-lg shadow-petrol/20">
+                        <i class="fa-solid fa-location-dot text-sm"></i>
+                    </div>
+                    <span class="font-semibold text-xl text-petrol tracking-tight">ViagemPronta</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <button onclick="toggleModal('loginModal')" class="text-sm font-medium text-gray-500 hover:text-petrol transition">Login</button>
+                    <button onclick="toggleModal('loginModal')" class="bg-petrol text-white px-6 py-2.5 rounded-full text-sm font-medium shadow-float hover:shadow-lg transition transform active:scale-95">
+                        Assinar Premium
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="app" class="flex-grow">
+        
+        <!-- VIEW 1: Search & Hero -->
+        <section id="hero-view" class="relative pt-24 pb-32 px-4 text-center overflow-hidden">
+            <!-- Background Gradient Subtle -->
+            <div class="absolute inset-0 z-0 bg-gradient-to-b from-white via-[#ecf4fc] to-[#F7F8FA]"></div>
+
+            <div class="relative z-10 max-w-3xl mx-auto">
+                <span class="inline-block py-1 px-3 rounded-full bg-blue-50 text-royal text-xs font-semibold tracking-wider mb-6 border border-blue-100">
+                    IA TRAVEL PLANNER
+                </span>
+                <h1 class="text-5xl md:text-6xl font-semibold text-petrol mb-6 leading-tight">
+                    Seu próximo destino, <br>
+                    <span class="text-royal">perfeitamente planejado.</span>
+                </h1>
+                <p class="text-lg text-gray-500 mb-12 font-light max-w-xl mx-auto">
+                    Roteiros personalizados em segundos. Menos tempo planejando, mais tempo vivendo.
+                </p>
+                
+                <!-- Search Bar Floating -->
+                <div class="max-w-xl mx-auto relative mb-20 group">
+                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                        <i class="fa-regular fa-compass text-gray-400 text-lg"></i>
+                    </div>
+                    <input type="text" id="searchInput" class="block w-full pl-12 pr-4 py-5 bg-white rounded-2xl shadow-premium text-lg text-petrol placeholder:text-gray-300 focus:ring-2 focus:ring-royal/20 border border-gray-100 outline-none transition" placeholder="Para onde você quer ir?">
+                    <button onclick="searchDestination()" class="absolute right-2 top-2 bottom-2 bg-royal hover:bg-blue-600 text-white px-6 rounded-xl font-medium transition shadow-md">
+                        Explorar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Popular Cards -->
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-left relative z-10 px-4">
+                <!-- Card 1 -->
+                <div onclick="loadDestination('Paris')" class="cursor-pointer group relative rounded-3xl overflow-hidden h-96 shadow-premium hover:shadow-2xl transition-all duration-500">
+                    <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-petrol/90 via-transparent to-transparent flex items-end p-8">
+                        <div class="translate-y-2 group-hover:translate-y-0 transition duration-500">
+                            <h3 class="text-white font-medium text-2xl mb-1">Paris</h3>
+                            <p class="text-white/70 text-sm font-light flex items-center gap-2"><i class="fa-regular fa-calendar"></i> Abr-Jun</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div onclick="loadDestination('Tokyo')" class="cursor-pointer group relative rounded-3xl overflow-hidden h-96 shadow-premium hover:shadow-2xl transition-all duration-500">
+                    <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-petrol/90 via-transparent to-transparent flex items-end p-8">
+                        <div class="translate-y-2 group-hover:translate-y-0 transition duration-500">
+                            <h3 class="text-white font-medium text-2xl mb-1">Tóquio</h3>
+                            <p class="text-white/70 text-sm font-light flex items-center gap-2"><i class="fa-regular fa-calendar"></i> Mar-Mai</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div onclick="loadDestination('Rio')" class="cursor-pointer group relative rounded-3xl overflow-hidden h-96 shadow-premium hover:shadow-2xl transition-all duration-500">
+                    <img src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-petrol/90 via-transparent to-transparent flex items-end p-8">
+                        <div class="translate-y-2 group-hover:translate-y-0 transition duration-500">
+                            <h3 class="text-white font-medium text-2xl mb-1">Rio de Janeiro</h3>
+                            <p class="text-white/70 text-sm font-light flex items-center gap-2"><i class="fa-regular fa-calendar"></i> Dez-Mar</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: Dashboard -->
+        <section id="dashboard-view" class="hidden max-w-7xl mx-auto px-6 lg:px-8 py-10">
+            
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+                <div>
+                    <button onclick="backToSearch()" class="text-sm font-medium text-gray-400 hover:text-royal mb-4 flex items-center gap-2 transition">
+                        <i class="fa-solid fa-arrow-left-long"></i> Voltar
+                    </button>
+                    <h1 id="destTitle" class="text-4xl md:text-5xl font-semibold text-petrol mb-3">Paris, França</h1>
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <span id="destSeason" class="bg-green-50 text-green-700 border border-green-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">Alta Temporada</span>
+                        <span id="destCurrency" class="flex items-center gap-1"><i class="fa-solid fa-coins text-royal"></i> Euro (€)</span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 md:mt-0 flex gap-4">
+                    <button onclick="toggleModal('aiPromptModal')" class="bg-gradient-to-r from-petrol to-[#004e75] hover:opacity-90 text-white px-6 py-3 rounded-xl text-sm font-medium shadow-float flex items-center gap-2 transition">
+                        <i class="fa-solid fa-wand-magic-sparkles text-blue-200"></i> Sugestão IA
+                    </button>
+                    <button onclick="exportPDF()" class="bg-white border border-gray-200 hover:border-gray-300 text-petrol px-6 py-3 rounded-xl text-sm font-medium shadow-sm flex items-center gap-2 transition">
+                        <i class="fa-regular fa-file-pdf"></i> Exportar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-10 border-b border-gray-200/60">
+                <nav class="flex space-x-10">
+                    <button onclick="switchTab('overview')" id="tab-overview" class="border-royal text-petrol pb-4 px-1 border-b-2 font-medium text-base transition-all">Visão Geral</button>
+                    <button onclick="switchTab('builder')" id="tab-builder" class="border-transparent text-gray-400 hover:text-gray-600 pb-4 px-1 border-b-2 font-medium text-base transition-all">Montador de Roteiro</button>
+                </nav>
+            </div>
+
+            <!-- TAB CONTENT: Overview -->
+            <div id="content-overview" class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                
+                <!-- Coluna Esquerda (35%) -->
+                <div class="md:col-span-4 space-y-6">
+                    <!-- Clima & Época -->
+                    <div class="glass-card p-8">
+                        <h3 class="font-semibold text-lg mb-6 text-petrol flex items-center gap-2"><i class="fa-regular fa-clock text-royal"></i> Melhor Época</h3>
+                        <p id="info-best-time" class="text-sm text-gray-600 leading-relaxed mb-4">Carregando...</p>
+                        <div class="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50">
+                             <h4 class="text-xs font-semibold text-royal mb-1 uppercase">Clima</h4>
+                             <p id="info-weather" class="text-sm text-gray-600">-</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Checklist -->
+                    <div class="glass-card p-8">
+                        <h3 class="font-semibold text-lg mb-6 text-petrol flex items-center gap-2"><i class="fa-solid fa-list-check text-royal"></i> Checklist</h3>
+                        <div id="info-checklist" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Segurança -->
+                    <div class="glass-card p-8 border-l-4 border-l-red-400">
+                        <h3 class="font-semibold text-lg mb-4 text-petrol">Segurança</h3>
+                        <ul id="info-safety" class="text-sm text-gray-600 space-y-3 list-disc pl-4 marker:text-red-400"></ul>
+                        <div class="mt-6 text-xs text-gray-400">
+                            <span class="font-semibold text-red-400 uppercase tracking-wide">Evitar:</span> <span id="info-avoid"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Central (35%) -->
+                <div class="md:col-span-4 space-y-6">
+                    <!-- Hospedagem -->
+                    <div class="glass-card p-8">
+                        <h3 class="font-semibold text-lg mb-6 text-petrol flex items-center gap-2"><i class="fa-solid fa-bed text-royal"></i> Onde Ficar</h3>
+                        <div id="info-stay" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Gastronomia -->
+                    <div class="glass-card p-8">
+                        <h3 class="font-semibold text-lg mb-6 text-petrol flex items-center gap-2"><i class="fa-solid fa-utensils text-royal"></i> Gastronomia</h3>
+                        <div id="info-food" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Locomoção -->
+                    <div class="glass-card p-8">
+                         <h3 class="font-semibold text-lg mb-4 text-petrol">Transporte</h3>
+                         <p id="info-transport" class="text-sm text-gray-600 leading-relaxed mb-4"></p>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita (30%) -->
+                <div class="md:col-span-4 space-y-6">
+                     <!-- Passeios Pagos (Gradient Premium) -->
+                     <div class="glass-card p-8 bg-gradient-to-br from-petrol to-[#0b253a] text-white border-none relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-royal rounded-full blur-[60px] opacity-20"></div>
+                        <h3 class="font-semibold text-lg mb-6 relative z-10 flex items-center gap-2"><i class="fa-solid fa-ticket"></i> Passeios Pagos</h3>
+                        <ul id="info-tours" class="text-sm space-y-4 relative z-10 opacity-90 font-light"></ul>
+                    </div>
+
+                    <!-- Custos -->
+                     <div class="glass-card p-8">
+                        <h3 class="font-semibold text-lg mb-6 text-petrol flex items-center gap-2"><i class="fa-solid fa-wallet text-royal"></i> Custos Médios</h3>
+                        <table class="w-full text-sm text-left">
+                            <tbody id="info-costs" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Etiqueta -->
+                    <div class="glass-card p-8">
+                        <h3 class="font-semibold text-lg mb-4 text-petrol">Costumes</h3>
+                        <ul id="info-customs" class="text-sm text-gray-600 space-y-2 list-disc pl-4 marker:text-royal"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: Itinerary Builder -->
+            <div id="content-builder" class="hidden">
+                <div class="flex flex-col lg:flex-row gap-8 h-[calc(100vh-250px)]">
+                    
+                    <!-- Sidebar: Pool -->
+                    <div class="w-full lg:w-1/4 flex flex-col glass-card h-full overflow-hidden shadow-premium">
+                        <div class="p-6 border-b border-gray-100 bg-white">
+                            <h3 class="font-semibold text-petrol">Atrações</h3>
+                            <p class="text-xs text-gray-400 mt-1">Arraste para os dias</p>
+                        </div>
+                        <div id="pool-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#FAFAFA]">
+                            <!-- Items -->
+                        </div>
+                    </div>
+
+                    <!-- Main: Board -->
+                    <div class="flex-1 overflow-x-auto pb-4">
+                        <div class="flex gap-6 h-full" id="days-container" style="min-width: 900px;">
+                            <!-- Days Columns -->
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar: Stats -->
+                    <div class="w-full lg:w-1/4 flex flex-col gap-6 h-full">
+                         <!-- Map Mock -->
+                         <div class="glass-card flex-1 relative overflow-hidden map-mock flex items-center justify-center border border-gray-200/50">
+                             <div class="absolute top-4 left-4 bg-white/90 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm text-petrol backdrop-blur-sm border border-gray-100">Mapa Visual</div>
+                             <svg id="mock-map-svg" viewBox="0 0 300 300" class="w-full h-full opacity-70">
+                                 <!-- SVG Lines -->
+                             </svg>
+                         </div>
+                         
+                         <!-- Stats -->
+                         <div class="glass-card p-6">
+                             <h4 class="font-semibold text-petrol mb-4">Resumo</h4>
+                             <div class="space-y-2 mb-6">
+                                <div class="flex justify-between text-sm text-gray-600">
+                                    <span>Dias</span> <span class="font-medium text-petrol" id="total-days-count">3</span>
+                                </div>
+                                <div class="flex justify-between text-sm text-gray-600">
+                                    <span>Atrações</span> <span class="font-medium text-petrol" id="total-attractions-count">0</span>
+                                </div>
+                             </div>
+                             <button onclick="addDay()" class="w-full py-3 bg-gray-50 hover:bg-white text-petrol rounded-xl text-xs font-semibold uppercase tracking-wide border border-dashed border-gray-300 transition shadow-sm hover:shadow-md">
+                                + Adicionar Dia
+                             </button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Modal Login -->
+    <div id="loginModal" class="fixed inset-0 bg-petrol/20 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="glass-card p-10 max-w-sm w-full mx-4 relative shadow-2xl">
+            <button onclick="toggleModal('loginModal')" class="absolute top-4 right-4 text-gray-400 hover:text-petrol transition"><i class="fa-solid fa-times"></i></button>
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-semibold text-petrol">Bem-vindo</h2>
+                <p class="text-gray-400 text-sm mt-1">Acesse seus roteiros salvos</p>
+            </div>
+            <form class="space-y-4" onsubmit="event.preventDefault(); toggleModal('loginModal');">
+                <input type="email" placeholder="E-mail" class="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-royal/20 outline-none transition border border-transparent focus:border-royal/20">
+                <input type="password" placeholder="Senha" class="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-royal/20 outline-none transition border border-transparent focus:border-royal/20">
+                <button type="submit" class="w-full bg-petrol text-white py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition transform active:scale-95">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal AI Prompt -->
+    <div id="aiPromptModal" class="fixed inset-0 bg-petrol/20 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="glass-card p-8 max-w-md w-full mx-4 shadow-2xl">
+            <h3 class="text-xl font-semibold mb-2 flex items-center gap-2 text-petrol"><i class="fa-solid fa-robot text-royal"></i> Travel Assistant</h3>
+            <p class="text-sm text-gray-500 mb-6">Descreva o estilo da viagem e receba sugestões exclusivas.</p>
+            
+            <textarea id="aiPromptInput" rows="3" class="w-full bg-gray-50 p-4 rounded-xl text-sm text-gray-700 focus:bg-white focus:ring-2 focus:ring-royal/20 border border-transparent focus:border-royal/20 outline-none resize-none mb-4" placeholder="Ex: Viagem romântica de 3 dias, orçamento médio..."></textarea>
+            
+            <div id="aiResultArea" class="hidden bg-blue-50/50 p-4 rounded-xl text-sm text-petrol mb-6 max-h-40 overflow-y-auto border border-blue-100 italic"></div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="toggleModal('aiPromptModal')" class="px-5 py-2 text-gray-400 hover:text-petrol text-sm font-medium transition">Cancelar</button>
+                <button onclick="generateItinerary()" id="btnGenerate" class="px-6 py-2 bg-royal text-white rounded-xl text-sm font-medium hover:bg-blue-600 transition shadow-lg flex items-center gap-2">
+                    <span id="btnGenText">Gerar</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // MOCK DATA
+        const destinations = {
+            "Paris": {
+                title: "Paris, França",
+                currency: "Euro (€)",
+                season: "Alta: Jun-Ago",
+                bestTime: "Abril a Junho e Setembro a Novembro.",
+                weather: "Verão quente (25°C), Inverno frio e chuvoso (5°C).",
+                safety: ["Cuidado com batedores de carteira no metrô.", "Golpe do anel de ouro.", "Golpe da pulseira em Montmartre."],
+                avoid: "Arredores de Gare du Nord à noite.",
+                checklist: ["Adaptador Tomada Tipo E", "Sapatos muito confortáveis", "Casaco leve"],
+                stay: [
+                    { name: "Le Marais", type: "Vibrante & Histórico", price: "Premium" },
+                    { name: "Quartier Latin", type: "Jovem & Boêmio", price: "Médio" },
+                    { name: "Montmartre", type: "Romântico", price: "Médio" }
+                ],
+                food: [
+                    { name: "L'As du Fallafel", cat: "Budget", note: "Marais" },
+                    { name: "Bouillon Chartier", cat: "Clássico", note: "Barato" },
+                    { name: "Le Jules Verne", cat: "Luxo", note: "Torre Eiffel" }
+                ],
+                transport: "Metrô é essencial. Use Citymapper. Evite carro.",
+                costs: [
+                    { item: "Refeição Média", price: "€25" },
+                    { item: "Ticket Metrô", price: "€2,10" },
+                    { item: "Café", price: "€2,50" }
+                ],
+                customs: ["Sempre diga 'Bonjour' ao entrar.", "Fale baixo em locais fechados.", "Gorjeta não é mandatória."],
+                tours: ["Torre Eiffel (€25)", "Louvre (€17)", "Sena (€15)"],
+                attractions: [
+                    { id: 'a1', name: "Torre Eiffel", cat: "Ícone", duration: 180, lat: 50, lng: 50 },
+                    { id: 'a2', name: "Museu do Louvre", cat: "Arte", duration: 240, lat: 60, lng: 60 },
+                    { id: 'a3', name: "Arco do Triunfo", cat: "Vista", duration: 60, lat: 40, lng: 45 },
+                    { id: 'a4', name: "Notre-Dame", cat: "História", duration: 60, lat: 70, lng: 70 },
+                    { id: 'a5', name: "Jardim Luxemburgo", cat: "Parque", duration: 90, lat: 65, lng: 65 },
+                    { id: 'a6', name: "Sacré-Cœur", cat: "Igreja", duration: 120, lat: 30, lng: 30 },
+                    { id: 'a7', name: "Musée d'Orsay", cat: "Arte", duration: 150, lat: 62, lng: 68 },
+                    { id: 'a8', name: "Galeries Lafayette", cat: "Compras", duration: 120, lat: 55, lng: 40 }
+                ]
+            }
+        };
+
+        let currentDest = null;
+        let daysData = [{ id: 1, items: [] }, { id: 2, items: [] }, { id: 3, items: [] }];
+
+        // CORE FUNCTIONS
+        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
+
+        function switchTab(tab) {
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            
+            const activeClass = "border-royal text-petrol pb-4 px-1 border-b-2 font-medium text-base transition-all";
+            const inactiveClass = "border-transparent text-gray-400 hover:text-gray-600 pb-4 px-1 border-b-2 font-medium text-base transition-all";
+            
+            document.getElementById('tab-overview').className = tab === 'overview' ? activeClass : inactiveClass;
+            document.getElementById('tab-builder').className = tab === 'builder' ? activeClass : inactiveClass;
+        }
+
+        function searchDestination() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if(query.includes("rio") || query.includes("tokyo") || query.includes("paris") || query === "") {
+                 loadDestination('Paris'); 
+            } else { alert("Demo: Tente 'Paris', 'Rio' ou 'Tóquio'."); }
+        }
+
+        function loadDestination(cityKey) {
+            document.getElementById('hero-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            const data = destinations["Paris"];
+            currentDest = data;
+
+            document.getElementById('destTitle').innerText = data.title;
+            document.getElementById('destSeason').innerText = data.season;
+            document.getElementById('destCurrency').innerHTML = `<i class="fa-solid fa-coins text-royal"></i> ${data.currency}`;
+            
+            // Overview Content
+            document.getElementById('info-best-time').innerText = data.bestTime;
+            document.getElementById('info-weather').innerText = data.weather;
+            document.getElementById('info-avoid').innerText = data.avoid;
+            document.getElementById('info-transport').innerText = data.transport;
+            
+            const renderList = (id, items, fn) => { document.getElementById(id).innerHTML = items.map(fn).join(''); };
+
+            renderList('info-safety', data.safety, i => `<li>${i}</li>`);
+            renderList('info-customs', data.customs, i => `<li>${i}</li>`);
+            renderList('info-tours', data.tours, i => `<li class="flex justify-between border-b border-white/10 pb-2 last:border-0"><span>${i.split('(')[0]}</span> <span class="font-bold text-blue-200">${i.split('(')[1].replace(')', '')}</span></li>`);
+            renderList('info-checklist', data.checklist, i => `<div class="flex items-center gap-3"><input type="checkbox" class="accent-royal w-4 h-4 rounded"> <label class="text-sm text-gray-600">${i}</label></div>`);
+            
+            renderList('info-stay', data.stay, i => `
+                <div class="flex justify-between items-start border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                    <div>
+                        <div class="font-medium text-petrol">${i.name}</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wide mt-0.5">${i.type}</div>
+                    </div>
+                    <span class="text-xs font-semibold bg-gray-100 px-2 py-1 rounded text-gray-500">${i.price}</span>
+                </div>
+            `);
+
+            renderList('info-food', data.food, i => `
+                <div class="flex justify-between items-center text-sm py-2 border-b border-gray-100 last:border-0">
+                    <span class="font-medium text-gray-700">${i.name}</span>
+                    <span class="text-xs text-royal font-medium px-2 py-0.5 rounded bg-blue-50">${i.cat}</span>
+                </div>
+            `);
+
+            renderList('info-costs', data.costs, i => `
+                <tr><td class="py-3 text-gray-500">${i.item}</td><td class="py-3 font-medium text-right text-petrol">${i.price}</td></tr>
+            `);
+
+            initBuilder(data.attractions);
+        }
+
+        function backToSearch() {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('hero-view').classList.remove('hidden');
+        }
+
+        // BUILDER LOGIC
+        function initBuilder(attractions) {
+            const pool = document.getElementById('pool-list');
+            pool.innerHTML = '';
+            attractions.forEach(att => { pool.appendChild(createCard(att)); });
+
+            new Sortable(pool, { group: 'shared', animation: 200, sort: false, ghostClass: 'drag-ghost' });
+            renderDays();
+            updateMetrics();
+        }
+
+        function createCard(att) {
+            const div = document.createElement('div');
+            div.className = "bg-white p-4 rounded-xl border border-gray-100 shadow-sm cursor-move hover:shadow-md hover:border-royal/30 transition group relative";
+            div.setAttribute('data-id', att.id);
+            div.setAttribute('data-duration', att.duration);
+            div.setAttribute('data-lat', att.lat);
+            div.setAttribute('data-lng', att.lng);
+            div.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <span class="font-medium text-sm text-petrol">${att.name}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] text-gray-400 uppercase tracking-wide bg-gray-50 px-1.5 py-0.5 rounded">${att.cat}</span>
+                    <span class="text-xs text-gray-500 flex items-center gap-1"><i class="fa-regular fa-clock text-[10px]"></i> ${formatTime(att.duration)}</span>
+                </div>
+            `;
+            return div;
+        }
+
+        function renderDays() {
+            const container = document.getElementById('days-container');
+            container.innerHTML = '';
+
+            daysData.forEach((day) => {
+                const dayCol = document.createElement('div');
+                dayCol.className = "w-80 flex-shrink-0 flex flex-col h-full";
+                
+                dayCol.innerHTML = `
+                    <div class="mb-4 flex justify-between items-center px-1">
+                        <span class="font-medium text-lg text-petrol">Dia ${day.id}</span>
+                        <button onclick="removeDay(${day.id})" class="text-gray-300 hover:text-red-400 transition text-sm"><i class="fa-regular fa-trash-can"></i></button>
+                    </div>
+                    <div id="day-${day.id}" class="flex-1 bg-white/50 rounded-2xl p-3 space-y-3 overflow-y-auto border border-dashed border-gray-200 min-h-[200px] shadow-inner"></div>
+                    <div class="mt-3 glass-card p-4 rounded-xl">
+                        <div class="flex justify-between text-xs text-gray-500 mb-2 font-medium">
+                            <span>Tempo Total</span>
+                            <span id="time-day-${day.id}" class="text-royal">0h</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5 mb-2 overflow-hidden">
+                            <div id="bar-day-${day.id}" class="bg-royal h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <div class="text-[10px] text-right text-gray-400 font-mono" id="dist-day-${day.id}">0 km</div>
+                    </div>
+                `;
+                
+                container.appendChild(dayCol);
+                new Sortable(dayCol.querySelector(`#day-${day.id}`), {
+                    group: 'shared', animation: 200, ghostClass: 'drag-ghost',
+                    onAdd: updateMetrics, onRemove: updateMetrics, onSort: updateMetrics
+                });
+            });
+        }
+
+        function addDay() { daysData.push({ id: daysData.length + 1, items: [] }); renderDays(); }
+        
+        function formatTime(mins) {
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            return h > 0 ? `${h}h${m > 0 ? m + 'm' : ''}` : `${m}min`;
+        }
+
+        function updateMetrics() {
+            let totalAttractions = 0;
+            const svg = document.getElementById('mock-map-svg');
+            svg.innerHTML = '';
+
+            daysData.forEach((day, idx) => {
+                const list = document.getElementById(`day-${day.id}`);
+                if(!list) return;
+
+                const items = Array.from(list.children);
+                totalAttractions += items.length;
+                let totalMin = 0;
+                let coords = [];
+
+                items.forEach(item => {
+                    totalMin += parseInt(item.getAttribute('data-duration') || 0);
+                    coords.push({ lat: parseInt(item.getAttribute('data-lat')), lng: parseInt(item.getAttribute('data-lng')) });
+                });
+
+                document.getElementById(`time-day-${day.id}`).innerText = formatTime(totalMin);
+                const barEl = document.getElementById(`bar-day-${day.id}`);
+                let percent = Math.min((totalMin / 600) * 100, 100);
+                barEl.style.width = `${percent}%`;
+                
+                barEl.className = totalMin < 300 ? "h-full rounded-full bg-green-400" : (totalMin < 540 ? "h-full rounded-full bg-royal" : "h-full rounded-full bg-red-400");
+
+                let dist = 0;
+                for(let i=0; i < coords.length - 1; i++) {
+                    const dx = coords[i].lat - coords[i+1].lat;
+                    const dy = coords[i].lng - coords[i+1].lng;
+                    dist += Math.sqrt(dx*dx + dy*dy);
+                }
+                document.getElementById(`dist-day-${day.id}`).innerText = `${(dist * 0.5).toFixed(1)} km`;
+
+                drawMapPath(svg, coords, idx);
+            });
+
+            document.getElementById('total-attractions-count').innerText = totalAttractions;
+            document.getElementById('total-days-count').innerText = daysData.length;
+        }
+
+        function drawMapPath(svg, coords, idx) {
+            if(coords.length === 0) return;
+            const colors = ['#4A90E2', '#003049', '#1B1D21', '#10B981']; 
+            const color = colors[idx % colors.length];
+            const scale = (n) => n * 3; 
+
+            let pathD = `M ${scale(coords[0].lat)} ${scale(coords[0].lng)}`;
+            for(let i=1; i<coords.length; i++) { pathD += ` L ${scale(coords[i].lat)} ${scale(coords[i].lng)}`; }
+            
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathD);
+            path.setAttribute("stroke", color);
+            path.setAttribute("stroke-width", "2");
+            path.setAttribute("stroke-linecap", "round");
+            path.setAttribute("fill", "none");
+            svg.appendChild(path);
+
+            coords.forEach(c => {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", scale(c.lat));
+                circle.setAttribute("cy", scale(c.lng));
+                circle.setAttribute("r", "3");
+                circle.setAttribute("fill", "white");
+                circle.setAttribute("stroke", color);
+                circle.setAttribute("stroke-width", "2");
+                svg.appendChild(circle);
+            });
+        }
+
+        function exportPDF() {
+            const element = document.getElementById('content-builder');
+            const wasHidden = element.classList.contains('hidden');
+            if(wasHidden) switchTab('builder');
+            
+            const opt = {
+                margin: 10, filename: 'Roteiro_ViagemPronta.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                if(wasHidden) switchTab('overview');
+            });
+        }
+
+        async function generateItinerary() {
+            const prompt = document.getElementById('aiPromptInput').value;
+            if(!prompt) return alert("Por favor, digite algo.");
+
+            const btn = document.getElementById('btnGenerate');
+            const btnText = document.getElementById('btnGenText');
+            const resultArea = document.getElementById('aiResultArea');
+
+            btnText.innerText = "Pensando...";
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            try {
+                const response = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: `Lista curta de 3 atrações para: ${prompt}` })
+                });
+                const data = await response.json();
+                resultArea.classList.remove('hidden');
+                resultArea.innerHTML = `<strong>IA Sugere:</strong><br>${data.result.replace(/\n/g, '<br>')}`;
+            } catch (error) {
+                alert("Erro de API ou Chave ausente.");
+            } finally {
+                btnText.innerText = "Gerar";
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>
