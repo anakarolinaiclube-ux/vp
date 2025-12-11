@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+export const runtime = "nodejs18";
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -29,24 +29,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "Você é um planejador de viagens moderno e conciso." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.8,
+        max_tokens: 300
+      })
     });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "Você é um planejador de viagens moderno e conciso." },
-        { role: "user", content: prompt }
-      ],
-      max_tokens: 250,
-    });
+    const data = await response.json();
+    const result = data?.choices?.[0]?.message?.content || "";
 
-    const result = completion.choices[0].message.content;
     return res.status(200).json({ result });
 
   } catch (error) {
-    console.error("OpenAI Error:", error);
+    console.error("AI Error:", error);
     return res.status(500).json({ error: 'AI Error' });
   }
 }
