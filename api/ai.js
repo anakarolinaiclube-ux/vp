@@ -25,21 +25,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "Você é um planejador de viagens moderno, direto e extremamente útil." },
+        { role: "system", content: "Você é um planejador de viagens moderno e direto." },
         { role: "user", content: prompt }
-      ],
-      max_tokens: 500
+      ]
     });
 
-    const result = completion.choices[0].message.content;
-    return res.status(200).json({ result });
+    return res.status(200).json({ result: completion.choices[0].message.content });
 
   } catch (err) {
     console.error("AI Error:", err);
